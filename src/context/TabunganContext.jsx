@@ -18,6 +18,10 @@ export default function TabunganProvider({ children }) {
   const [dataPengeluaran, setDataPengeluaran] = useState([]);
   const [dataUang, setDataUang] = useState([])
   const [refresh, setRefresh] = useState(false)
+  // Trigger
+  const [editInPlace, setEditInPlace] = useState({
+    type: null
+  });
 
   const submitPengeluaran = async (type) => {
     const storage_key = "@pengeluaran";
@@ -52,10 +56,25 @@ export default function TabunganProvider({ children }) {
       let currentData = jsonValue != null ? JSON.parse(jsonValue) : {}
       currentData[type] = dana
       await AsyncStorage.setItem('@uang', JSON.stringify(currentData))
+      setEditInPlace({
+        type: null
+      })
       console.log("Berhasil simpan data dana")
     }catch(e){
       console.error("Error saving data dana",e)
     }
+  }
+
+  function editTrigger() {
+    setEditInPlace({
+      type: "inputTabungan"
+    })
+  }
+
+  function editTriggerMakan(){
+    setEditInPlace({
+      type: "inputMakan"
+    })
   }
 
   // const submitDataDana = async () => {
@@ -108,7 +127,10 @@ export default function TabunganProvider({ children }) {
     setInputDana,
     inputDana,
     dataUang,
-    setDataUang
+    setDataUang,
+    editTrigger,
+    editInPlace,
+    editTriggerMakan
   };
   return (
     <>

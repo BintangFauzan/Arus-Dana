@@ -15,16 +15,20 @@ import History from "../components/History";
 import { TabunganContext } from "../context/TabunganContext";
 
 export default function App() {
-  const { dataPengeluaran, submitDataDana, inputDana, dataUang } =
-    useContext(TabunganContext);
+  const {
+    dataPengeluaran,
+    submitDataDana,
+    inputDana,
+    dataUang,
+    editTrigger,
+    editInPlace,
+    editTriggerMakan
+  } = useContext(TabunganContext);
   console.log("input dana", inputDana);
-  console.log("data uang", dataUang)
+  console.log("data uang", dataUang);
 
-  const [editInPlace, setEditInPlace] = useState(false);
   console.log("edit in place", editInPlace);
-  function editTrigger() {
-    setEditInPlace(true);
-  }
+
   function closeEdit() {
     setEditInPlace(false);
   }
@@ -42,22 +46,25 @@ export default function App() {
               judul={"TABUNGAN"}
               saldo={dataUang.tabungan?.dana}
               type={"tabungan"}
-              editInPlace={editInPlace}
-              onSubmitEditing={submitDataDana}
-              touchAble={
-                <TouchableOpacity
-                  style={[styles.btn, styles.btnTabungan]}
-                  onPress={() => submitDataDana("tabungan")}
-                >
-                  <Text style={styles.btnText}>- Tabungan</Text>
-                </TouchableOpacity>
-              }
+              editInPlace={editInPlace.type}
+              onSubmitEditing={() => submitDataDana("tabungan")}
+              // touchAble={
+              //   <TouchableOpacity
+              //     style={[styles.btn, styles.btnTabungan]}
+              //     onPress={() => submitDataDana("tabungan")}
+              //   >
+              //     <Text style={styles.btnText}>- Tabungan</Text>
+              //   </TouchableOpacity>
+              // }
             />
           </TouchableOpacity>
 
           {/* Kolom Makan */}
-          <TouchableOpacity style={styles.cardWrapper}>
-            <CardTabungan judul={"MAKAN"} saldo={"773.000"} type={"makan"} />
+          <TouchableOpacity style={styles.cardWrapper} onPress={editTriggerMakan}>
+            <CardTabungan judul={"MAKAN"} saldo={dataUang.makan?.dana || 0} type={"makan"} 
+            editInPlace={editInPlace.type}
+            onSubmitEditing={() => submitDataDana("makan")}
+            />
           </TouchableOpacity>
         </View>
 

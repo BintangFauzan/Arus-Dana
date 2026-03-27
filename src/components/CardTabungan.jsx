@@ -20,21 +20,22 @@ export default function CardTabungan({
   const dynamicStyleCard =
     type === "makan" ? styles.cardMakan : styles.cardTabungan;
   const icon = type === "makan" ? "🍴" : "💰";
+  const saldoDana = Intl.NumberFormat("id-ID", {maximumSignificantDigits: 3}).format(saldo)
   return (
     <>
       <View style={[styles.card, dynamicStyleCard]}>
         <Text style={styles.cardLabel}>
           {icon} DANA {judul}
         </Text>
-        {editInPlace ? (
+        {editInPlace === "inputTabungan" || editInPlace === "inputMakan" ? (
           <TextInput
             style={styles.cardAmount}
             onSubmitEditing={onSubmitEditing}
             value={inputDana}
-            onChangeText={(e) => setInputDana({ ...inputDana, e })}
+            onChangeText={(e) => setInputDana({ ...inputDana, dana:e })}
           />
         ) : (
-          <Text style={styles.cardAmount}>Rp {saldo}</Text>
+          <Text style={styles.cardAmount}>Rp {saldoDana}</Text>
         )}
         <Text style={styles.cardFooter}>
           {type === "makan" ? "Sisa Anggaran" : "Saldo Saat Ini"}
