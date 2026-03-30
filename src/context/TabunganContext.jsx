@@ -6,7 +6,7 @@ export const TabunganContext = createContext();
 export default function TabunganProvider({ children }) {
   // Form input
   const [formInput, setFormInput] = useState({
-    nominal: "",
+    nominal: 0,
     deskripsi: "",
     type: "",
   });
@@ -18,16 +18,16 @@ export default function TabunganProvider({ children }) {
   const [dataPengeluaran, setDataPengeluaran] = useState([]);
   const [dataUang, setDataUang] = useState([])
   const [refresh, setRefresh] = useState(false)
+  // Id Type
+  const [typeDana, setType] = useState(null)
   // Trigger
-  const [editInPlace, setEditInPlace] = useState({
-    type: null
-  });
+  const [editInPlace, setEditInPlace] = useState(null);
 
   const submitPengeluaran = async (type) => {
     const storage_key = "@pengeluaran";
     try {
       const transaksi = {
-        nominal: formInput.nominal,
+        nominal: Number(formInput.nominal),
         deskripsi: formInput.deskripsi,
         type: type,
       };
@@ -40,72 +40,126 @@ export default function TabunganProvider({ children }) {
         deskripsi:""
       })
       setRefresh(true)
+      setType(type)
+      calculateDana("tabungan")
       console.log("Berhasil simpan data", currentData);
+      console.log("Type dana: ", typeDana)
     } catch (e) {
       console.error("Gagal menyimpan data: ", e);
     }
   };
 
   const submitDataDana = async (type) => {
-    try{
+    // Pastikan type adalah string dan bukan objek event
+    if (typeof type !== 'string') {
+      console.warn("submitDataDana requires a string type");
+      return;
+    }
+
+    try {
       const dana = {
-        dana: inputDana.dana,
+        dana: Number(inputDana.nominal || 0), // Gunakan nominal dari inputDana jika ada, atau pastikan itu angka
         type: type
       }
+      
+      // Jika inputDana.dana yang digunakan (seperti di CardTabungan)
+      if (inputDana.dana !== undefined) {
+        dana.dana = Number(inputDana.dana);
+      }
+
       const jsonValue = await AsyncStorage.getItem('@uang')
       let currentData = jsonValue != null ? JSON.parse(jsonValue) : {}
-      currentData[type] = dana
+      
+      // Pastikan currentData adalah objek, bukan array
+      if (Array.isArray(currentData)) currentData = {};
+
+      currentData[type.toLowerCase()] = dana;
+      
       await AsyncStorage.setItem('@uang', JSON.stringify(currentData))
-      setEditInPlace({
-        type: null
-      })
-      console.log("Berhasil simpan data dana")
-    }catch(e){
-      console.error("Error saving data dana",e)
+      setEditInPlace(null)
+      setRefresh(true) // Trigger refresh data agar UI update
+      // console.log("Type tabungan: ", type)
+      console.log("Berhasil simpan data dana", currentData)
+    } catch (e) {
+      console.error("Error saving data dana", e)
     }
   }
 
   function editTrigger() {
-    setEditInPlace({
-      type: "inputTabungan"
-    })
+    setEditInPlace("Tabungan")
   }
 
-  function editTriggerMakan(){
-    setEditInPlace({
-      type: "inputMakan"
-    })
+  function editTriggerMakan() {
+    setEditInPlace("Makan")
   }
 
-  // const submitDataDana = async () => {
-  //   try{
-  //     const jsonValue = await AsyncStorage.getItem("@dana")
-  //     let currentData = jsonValue != null ? JSON.parse(jsonValue) : []
-  //     currentData.push(inputDana)
-  //     await AsyncStorage.setItem("@dana", JSON.stringify(currentData))
-  //     console.log("Berhasil input dana")
-  //   }catch(e){
-  //     console.error("Erro simpan dana", e)
-  //   }
-  // }
-
- const hapusDataPengeluaran = async () => {
-   const storage_key = "@pengeluaran";
-     try{
+  const hapusData = async () => {
+    const storage_key = "@uang";
+    try {
       await AsyncStorage.removeItem(storage_key)
       console.log("Berhasil hapus data", storage_key)
-     }catch(e){
+      setRefresh(true)
+    } catch (e) {
       console.error("Gagal hapus data", e)
-     }
- }
+    }
+  }
+
+  async function deleteLastTransaction(taskRemove) {
+    try{
+      const listLastTransaction = await AsyncStorage.getItem("@pengeluaran")
+      let currentLastTransaction = listLastTransaction != null ? JSON.parse(listLastTransaction) : []
+      const updateDataTransaction = currentLastTransaction.filter((_,index) => index != taskRemove)
+      await AsyncStorage.setItem("@pengeluaran", JSON.stringify(updateDataTransaction))
+      console.log("Berhasil hapus data transaksi")
+      setRefresh(true)
+    }catch(e){
+      console.log("Gagal hapus data transaksi", e)
+    }
+  }
+
+  // Masih dalam proses
+  async function calculateDana(type) {
+     if (typeof typeDana !== 'string') {
+      console.warn("calculate dana requires a string type");
+      return;
+    }
+    try{
+      const jsonUang = await AsyncStorage.getItem("@uang")
+      let currentDataUang = jsonUang != null ? JSON.parse(jsonUang) : {}
+      // Calculate
+      let calculate = 10
+      if(type === "tabungan"){
+        calculate = 100 - 50
+      }
+      const dana = {
+        dana: Number(calculate || 0), // Gunakan nominal dari inputDana jika ada, atau pastikan itu angka
+        type: type
+      }
+       // Pastikan currentData adalah objek, bukan array
+      if (Array.isArray(calculate)) calculate = {};
+
+
+      currentDataUang[type.toLowerCase()] = dana
+      await AsyncStorage.setItem("@uang", JSON.stringify(currentDataUang))
+      console.log("Berhasil mengurangi uang")
+      console.log("Hasil perhitungan", currentDataUang)
+      return calculate
+    }catch(e){
+      console.error("Gagal hitung uang", e)
+    }
+  }
+
   const getData = async () => {
     const storage_key = "@pengeluaran";
     try {
       const jsonValue = await AsyncStorage.getItem(storage_key);
       const data = jsonValue != null ? JSON.parse(jsonValue) : [];
+      
       const jsonValueUang = await AsyncStorage.getItem('@uang')
-      const dataUang = jsonValueUang != null ? JSON.parse(jsonValueUang) : []
-      setDataUang(dataUang)
+      // Inisialisasi sebagai objek {} agar konsisten
+      const dataUangObj = jsonValueUang != null ? JSON.parse(jsonValueUang) : {}
+      
+      setDataUang(dataUangObj)
       setDataPengeluaran(data);
       setRefresh(false)
     } catch (e) {
@@ -115,6 +169,7 @@ export default function TabunganProvider({ children }) {
 
   useEffect(() => {
     getData();
+    // calculateDana()
   }, [refresh]);
 
   const ctx = {
@@ -122,7 +177,7 @@ export default function TabunganProvider({ children }) {
     setFormInput,
     submitPengeluaran,
     dataPengeluaran,
-    hapusDataPengeluaran,
+    hapusData,
     submitDataDana,
     setInputDana,
     inputDana,
@@ -130,7 +185,9 @@ export default function TabunganProvider({ children }) {
     setDataUang,
     editTrigger,
     editInPlace,
-    editTriggerMakan
+    setEditInPlace, // Tambahkan ini
+    editTriggerMakan,
+    deleteLastTransaction
   };
   return (
     <>
