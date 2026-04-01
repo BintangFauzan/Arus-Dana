@@ -35,13 +35,12 @@ export default function TabunganProvider({ children }) {
       let currentData = jsonValue != null ? JSON.parse(jsonValue) : []
       currentData.push(transaksi)
       await AsyncStorage.setItem(storage_key, JSON.stringify(currentData));
+      calculateDana("tabungan")
       setFormInput({
         nominal:"",
         deskripsi:""
       })
       setRefresh(true)
-      setType(type)
-      calculateDana("tabungan")
       console.log("Berhasil simpan data", currentData);
       console.log("Type dana: ", typeDana)
     } catch (e) {
@@ -119,17 +118,23 @@ export default function TabunganProvider({ children }) {
 
   // Masih dalam proses
   async function calculateDana(type) {
-     if (typeof typeDana !== 'string') {
+     if (typeof type !== 'string') {
       console.warn("calculate dana requires a string type");
       return;
     }
     try{
       const jsonUang = await AsyncStorage.getItem("@uang")
       let currentDataUang = jsonUang != null ? JSON.parse(jsonUang) : {}
+      let uangSaatIni = currentDataUang?.tabungan?.dana
+
+      const jsonTransaksiTerakhir = await AsyncStorage.getItem("@pengeluaran")
+      let currentDataTransaksi = jsonTransaksiTerakhir != null ? JSON.parse(jsonTransaksiTerakhir) : []
+      let transaksiSaatIni = currentDataTransaksi.map((item) => item.nominal)
+      const totalTransaksi = transaksiSaatIni.reduce((accumulator, currentData) => accumulator + currentData, 0)
       // Calculate
       let calculate = 10
       if(type === "tabungan"){
-        calculate = 100 - 50
+        calculate = uangSaatIni - Number(formInput.nominal)
       }
       const dana = {
         dana: Number(calculate || 0), // Gunakan nominal dari inputDana jika ada, atau pastikan itu angka
