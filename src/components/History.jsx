@@ -1,26 +1,65 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-export default function History({judul, biaya, type}) {
-    const dynamicStyleCard = type === 'makan' ? styles.historyAmountMakan : styles.historyAmountTabungan
+export default function History({ judul, biaya, type, onPressDeleteTransaction, tanggal, jam }) {
+  const dynamicStyleCard =
+    type === "makan" ? styles.historyAmountMakan : styles.historyAmountTabungan;
+  const historiBiaya = Intl.NumberFormat("id-ID", {maximumSignificantDigits: 3}).format(biaya);
+
   return (
-    <>
-      <View style={styles.historyItem}>
+    <View style={styles.historyItem}>
+      <View style={styles.historyLeft}>
         <Text style={styles.historyDesc}>{judul}</Text>
-        <Text style={dynamicStyleCard}>-Rp {biaya}</Text>
+        <Text style={styles.historyDateTime}>{tanggal} • {jam}</Text>
       </View>
-    </>
+      <Text style={dynamicStyleCard}>-Rp {historiBiaya}</Text>
+      <TouchableOpacity onPress={onPressDeleteTransaction} style={styles.deleteBtn}>
+        <Text style={styles.deleteBtnText}>✕</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   historyItem: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 12,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#EEE",
   },
-  historyDesc: { fontSize: 14, color: "#444" },
-  historyAmountMakan: { color: "#E53935", fontWeight: "bold" },
-  historyAmountTabungan: { color: "#34A853", fontWeight: "bold" },
+  historyLeft: {
+    flex: 1,
+  },
+  historyDesc: { 
+    fontSize: 14, 
+    color: "#444",
+    marginBottom: 2,
+  },
+  historyDateTime: {
+    fontSize: 11,
+    color: "#999",
+  },
+  historyAmountMakan: { 
+    color: "#E53935", 
+    fontWeight: "bold",
+    fontSize: 13,
+    marginRight: 12,
+  },
+  historyAmountTabungan: { 
+    color: "#34A853", 
+    fontWeight: "bold",
+    fontSize: 13,
+    marginRight: 12,
+  },
+  deleteBtn: {
+    padding: 6,
+    backgroundColor: "#F5F5F5",
+    borderRadius: 6,
+  },
+  deleteBtnText: {
+    fontSize: 14,
+    color: "#999",
+  }
 });

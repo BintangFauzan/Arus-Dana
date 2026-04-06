@@ -13,36 +13,44 @@ export default function CardTabungan({
   type,
   saldo,
   editInPlace,
-  onSubmitEditing,
-  touchAble
+  submitEdit,
+  touchAble,
 }) {
-  const { inputDana, setInputDana, submitDataDana } = useContext(TabunganContext);
+  const { inputDana, setInputDana, submitDataDana } =
+    useContext(TabunganContext);
+  const [localState, setLocalState] = useState({
+    dana: 0,
+    type: "",
+  });
   const dynamicStyleCard =
-    type === "makan" ? styles.cardMakan : styles.cardTabungan;
-  const icon = type === "makan" ? "🍴" : "💰";
-  const saldoDana = Intl.NumberFormat("id-ID", {maximumSignificantDigits: 3}).format(saldo)
+    type === "Makan" ? styles.cardMakan : styles.cardTabungan;
+  const icon = type === "Makan" ? "🍴" : "💰";
+  const saldoDana = Intl.NumberFormat("id-ID", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(saldo);
   return (
     <>
       <View style={[styles.card, dynamicStyleCard]}>
         <Text style={styles.cardLabel}>
           {icon} DANA {judul}
         </Text>
-        {editInPlace === "inputTabungan" || editInPlace === "inputMakan" ? (
+        {editInPlace === type ? (
           <TextInput
             style={styles.cardAmount}
-            onSubmitEditing={onSubmitEditing}
-            value={inputDana}
-            onChangeText={(e) => setInputDana({ ...inputDana, dana:e })}
+            onSubmitEditing={() => submitEdit(localState)}
+            value={localState.dana.toString()}
+            onChangeText={(e) => setLocalState({ ...localState, dana: e })}
+            keyboardType="numeric"
+            autoFocus={true}
           />
         ) : (
           <Text style={styles.cardAmount}>Rp {saldoDana}</Text>
         )}
         <Text style={styles.cardFooter}>
-          {type === "makan" ? "Sisa Anggaran" : "Saldo Saat Ini"}
+          {type === "Makan" ? "Sisa Anggaran" : "Saldo Saat Ini"}
         </Text>
-        <View style={styles.buttonRow}>
-          {touchAble}
-        </View>
+        <View style={styles.buttonRow}>{touchAble}</View>
       </View>
     </>
   );

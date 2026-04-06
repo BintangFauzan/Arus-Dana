@@ -18,19 +18,25 @@ export default function App() {
   const {
     dataPengeluaran,
     submitDataDana,
-    inputDana,
+    // inputDana,
     dataUang,
     editTrigger,
     editInPlace,
-    editTriggerMakan
+    setEditInPlace,
+    editTriggerMakan,
+    deleteLastTransaction,
+    hapusData,
+    sisaTabungan,
+    sisaUangMakan
   } = useContext(TabunganContext);
-  console.log("input dana", inputDana);
+  // console.log("input dana", inputDana);
   console.log("data uang", dataUang);
+  console.log("Data pengeluaran", dataPengeluaran)
 
   console.log("edit in place", editInPlace);
 
   function closeEdit() {
-    setEditInPlace(false);
+    setEditInPlace(null);
   }
   return (
     <SafeAreaView style={styles.container}>
@@ -40,30 +46,29 @@ export default function App() {
 
         {/* Dashboard 2 Kolom */}
         <View style={styles.cardContainer}>
-          {/* Kolom Tabungan */}
           <TouchableOpacity onPress={editTrigger}>
             <CardTabungan
               judul={"TABUNGAN"}
-              saldo={dataUang.tabungan?.dana}
-              type={"tabungan"}
-              editInPlace={editInPlace.type}
-              onSubmitEditing={() => submitDataDana("tabungan")}
-              // touchAble={
-              //   <TouchableOpacity
-              //     style={[styles.btn, styles.btnTabungan]}
-              //     onPress={() => submitDataDana("tabungan")}
-              //   >
-              //     <Text style={styles.btnText}>- Tabungan</Text>
-              //   </TouchableOpacity>
-              // }
+              saldo={sisaTabungan || 0}
+              type={"Tabungan"}
+              editInPlace={editInPlace}
+              submitEdit={(nilaiBaru) => submitDataDana("tabungan", Number(nilaiBaru.dana))}
+              touchAble={
+                <TouchableOpacity
+                  style={[styles.btn, styles.btnTabungan]}
+                  onPress={() => hapusData()}
+                >
+                  <Text style={styles.btnText}>- Tabungan</Text>
+                </TouchableOpacity>
+              }
             />
           </TouchableOpacity>
 
           {/* Kolom Makan */}
           <TouchableOpacity style={styles.cardWrapper} onPress={editTriggerMakan}>
-            <CardTabungan judul={"MAKAN"} saldo={dataUang.makan?.dana || 0} type={"makan"} 
-            editInPlace={editInPlace.type}
-            onSubmitEditing={() => submitDataDana("makan")}
+            <CardTabungan judul={"MAKAN"} saldo={sisaUangMakan || 0} type={"Makan"} 
+            editInPlace={editInPlace}
+            submitEdit={(nilaiBaru) => submitDataDana("makan",nilaiBaru.dana)}
             />
           </TouchableOpacity>
         </View>
@@ -74,14 +79,19 @@ export default function App() {
         {/* Riwayat Transaksi */}
         <View style={styles.historySection}>
           <Text style={styles.sectionTitle}>Transaksi Terakhir</Text>
-          {dataPengeluaran?.map((item, index) => (
+         <ScrollView style={styles.historyScroll} nestedScrollEnabled={true} showsVerticalScrollIndicator={true}>
+           {dataPengeluaran?.map((item, index) => (
             <History
               judul={item.deskripsi}
               biaya={item.nominal}
               type={item.type}
               key={index}
+              onPressDeleteTransaction={() => deleteLastTransaction(index)}
+              tanggal={item.tanggal}
+              jam={item.jam}
             />
           ))}
+         </ScrollView>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -130,6 +140,7 @@ const styles = StyleSheet.create({
   historyDesc: { fontSize: 14, color: "#444" },
   historyAmountMakan: { color: "#E53935", fontWeight: "bold" },
   historyAmountTabungan: { color: "#34A853", fontWeight: "bold" },
+  historyScroll:{ maxHeight: 300},
   btn: {
     flex: 0.48,
     padding: 12,
