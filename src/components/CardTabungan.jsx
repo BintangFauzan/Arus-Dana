@@ -16,10 +16,10 @@ export default function CardTabungan({
   submitEdit,
   touchAble,
 }) {
-  const { inputDana, setInputDana, submitDataDana } =
+  const { formatRibuan } =
     useContext(TabunganContext);
   const [localState, setLocalState] = useState({
-    dana: 0,
+    dana: "",
     type: "",
   });
   const dynamicStyleCard =
@@ -29,6 +29,12 @@ export default function CardTabungan({
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(saldo);
+
+  
+  function handleChangeText(text){
+    const formatted = formatRibuan(text)
+    setLocalState({...localState, dana: formatted})
+  }
   return (
     <>
       <View style={[styles.card, dynamicStyleCard]}>
@@ -40,7 +46,7 @@ export default function CardTabungan({
             style={styles.cardAmount}
             onSubmitEditing={() => submitEdit(localState)}
             value={localState.dana.toString()}
-            onChangeText={(e) => setLocalState({ ...localState, dana: e })}
+            onChangeText={handleChangeText}
             keyboardType="numeric"
             autoFocus={true}
           />

@@ -6,7 +6,7 @@ export const TabunganContext = createContext();
 export default function TabunganProvider({ children }) {
   // Form input
   const [formInput, setFormInput] = useState({
-    nominal: 0,
+    nominal: "",
     deskripsi: "",
     type: "",
   });
@@ -23,9 +23,26 @@ export default function TabunganProvider({ children }) {
   // Trigger
   const [editInPlace, setEditInPlace] = useState(null);
 
+ function parseDana(text) {
+  if (!text) return 0;
+  let str = String(text);
+  let bersih = str.replace(/\./g, "");
+  return Number(bersih);
+}
+
+
+  function formatRibuan(text){
+    const cleanNumber = text.replace(/\D/g, '')
+    return cleanNumber.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  }
+
   const submitPengeluaran = async (type) => {
     const storage_key = "@pengeluaran";
     try {
+      if(parseDana(formInput.nominal) === 0 || formInput.deskripsi === ""){
+        console.log("Harap isi semua field")
+        return
+      }
       // Fitur jam dan tanggal otomatis
       const now = new Date();
       const tanggal =
@@ -41,7 +58,7 @@ export default function TabunganProvider({ children }) {
         ":" +
         String(now.getHours()).padStart(2, "0");
       const transaksi = {
-        nominal: Number(formInput.nominal),
+        nominal: parseDana(formInput.nominal),
         deskripsi: formInput.deskripsi,
         type: type,
         tanggal: tanggal,
@@ -58,21 +75,7 @@ export default function TabunganProvider({ children }) {
       const currentDataPengeluaran =
         jsonValuePengeluaran != null ? JSON.parse(jsonValuePengeluaran) : [];
 
-      // // Calculate total expenses for "tabungan" from current data
-      // const totalPengeluaranTabunganCurrent = currentDataPengeluaran
-      //   .filter((item) => item.type.toLowerCase() === "tabungan")
-      //   .reduce((accumulator, item) => accumulator + item.nominal, 0);
-
-      // const sisaTabunganCurrent = (currentDataUang.tabungan?.dana || 0) - totalPengeluaranTabunganCurrent;
-
-      // // Calculate total expenses for "makan" from current data
-      // const totalPengeluaranMakanCurrent = currentDataPengeluaran
-      //   .filter((item) => item.type.toLowerCase() === "makan")
-      //   .reduce((accumulator, item) => accumulator + item.nominal, 0);
-
-      // const sisaUangMakanCurrent = (currentDataUang.makan?.dana || 0) - totalPengeluaranMakanCurrent;
-
-      if (type === "tabungan" && formInput.nominal > sisaTabungan) {
+      if (type === "tabungan" && parseDana(formInput.nominal) > sisaTabungan) {
         console.log("uang tidak mencukupi untuk tabungan");
         setFormInput({
           nominal: "",
@@ -81,7 +84,7 @@ export default function TabunganProvider({ children }) {
         return; // Stop the function execution
       }
 
-      if (type === "makan" && formInput.nominal > sisaUangMakan) {
+      if (type === "makan" && parseDana(formInput.nominal) > sisaUangMakan) {
         console.log("uang tidak mencukupi untuk makan");
         setFormInput({
           nominal: "",
@@ -116,13 +119,13 @@ export default function TabunganProvider({ children }) {
 
     try {
       const dana = {
-        dana: Number(nilaiBaru || 0), // Gunakan nominal dari inputDana jika ada, atau pastikan itu angka
+        dana: parseDana(nilaiBaru || 0), // Gunakan nominal dari inputDana jika ada, atau pastikan itu angka
         type: type,
       };
 
       // Jika inputDana.dana yang digunakan (seperti di CardTabungan)
       if (nilaiBaru.dana !== undefined) {
-        dana.dana = Number(nilaiBaru);
+        dana.dana = parseDana(nilaiBaru);
       }
 
       const jsonValue = await AsyncStorage.getItem("@uang");
@@ -181,43 +184,6 @@ export default function TabunganProvider({ children }) {
     }
   }
 
-  // Masih dalam proses
-  // async function calculateDana(type) {
-  //    if (typeof type !== 'string') {
-  //     console.warn("calculate dana requires a string type");
-  //     return;
-  //   }
-  //   try{
-  //     const jsonUang = await AsyncStorage.getItem("@uang")
-  //     let currentDataUang = jsonUang != null ? JSON.parse(jsonUang) : {}
-  //     let uangSaatIni = currentDataUang?.tabungan?.dana
-
-  //     const jsonTransaksiTerakhir = await AsyncStorage.getItem("@pengeluaran")
-  //     let currentDataTransaksi = jsonTransaksiTerakhir != null ? JSON.parse(jsonTransaksiTerakhir) : []
-  //     let transaksiSaatIni = currentDataTransaksi.map((item) => item.nominal)
-  //     const totalTransaksi = transaksiSaatIni.reduce((accumulator, currentData) => accumulator + currentData, 0)
-  //     // Calculate
-  //     let calculate = 10
-  //     if(type === "tabungan"){
-  //       calculate = uangSaatIni - totalTransaksi
-  //     }
-  //     const dana = {
-  //       dana: Number(calculate || 0), // Gunakan nominal dari inputDana jika ada, atau pastikan itu angka
-  //       type: type
-  //     }
-  //      // Pastikan currentData adalah objek, bukan array
-  //     if (Array.isArray(calculate)) calculate = {};
-
-  //     currentDataUang[type.toLowerCase()] = dana
-  //     await AsyncStorage.setItem("@uang", JSON.stringify(currentDataUang))
-  //     console.log("Berhasil mengurangi uang")
-  //     console.log("Hasil perhitungan", currentDataUang)
-  //     return calculate
-  //   }catch(e){
-  //     console.error("Gagal hitung uang", e)
-  //   }
-  // }
-
   const totalPengeluaranTabungan = dataPengeluaran
     .filter((type) => type.type.toLowerCase() === "tabungan")
     .reduce((accumulator, currentData) => accumulator + currentData.nominal, 0);
@@ -271,6 +237,8 @@ export default function TabunganProvider({ children }) {
     deleteLastTransaction,
     sisaUangMakan,
     sisaTabungan,
+    parseDana,
+    formatRibuan
   };
   return (
     <>

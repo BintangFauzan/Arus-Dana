@@ -11,6 +11,11 @@ import { TabunganContext } from "../context/TabunganContext";
 export default function FormInput({}) {
   const { formInput, setFormInput, submitPengeluaran, hapusDataPengeluaran } =
     useContext(TabunganContext);
+
+  function formatRibuan(text){
+    const cleanNumber = text.replace(/\D/g, '')
+    return cleanNumber.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  }
   return (
     <>
       <View style={styles.inputSection}>
@@ -20,7 +25,7 @@ export default function FormInput({}) {
           placeholder="Nominal (Rp)"
           keyboardType="numeric"
           value={formInput.nominal}
-          onChangeText={(e) => setFormInput({ ...formInput, nominal: e })}
+          onChangeText={(e) => setFormInput({ ...formInput, nominal: formatRibuan(e) })}
         />
         <TextInput
           style={styles.input}

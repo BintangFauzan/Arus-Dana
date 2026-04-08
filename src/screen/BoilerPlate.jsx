@@ -14,7 +14,7 @@ import FormInput from "../components/FormInput";
 import History from "../components/History";
 import { TabunganContext } from "../context/TabunganContext";
 
-export default function App() {
+export default function App({navigation}) {
   const {
     dataPengeluaran,
     submitDataDana,
@@ -23,6 +23,7 @@ export default function App() {
     editTrigger,
     editInPlace,
     setEditInPlace,
+    parseDana,
     editTriggerMakan,
     deleteLastTransaction,
     hapusData,
@@ -35,9 +36,6 @@ export default function App() {
 
   console.log("edit in place", editInPlace);
 
-  function closeEdit() {
-    setEditInPlace(null);
-  }
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -52,15 +50,7 @@ export default function App() {
               saldo={sisaTabungan || 0}
               type={"Tabungan"}
               editInPlace={editInPlace}
-              submitEdit={(nilaiBaru) => submitDataDana("tabungan", Number(nilaiBaru.dana))}
-              touchAble={
-                <TouchableOpacity
-                  style={[styles.btn, styles.btnTabungan]}
-                  onPress={() => hapusData()}
-                >
-                  <Text style={styles.btnText}>- Tabungan</Text>
-                </TouchableOpacity>
-              }
+              submitEdit={(nilaiBaru) => submitDataDana("tabungan", parseDana(nilaiBaru.dana))}
             />
           </TouchableOpacity>
 
@@ -68,10 +58,14 @@ export default function App() {
           <TouchableOpacity style={styles.cardWrapper} onPress={editTriggerMakan}>
             <CardTabungan judul={"MAKAN"} saldo={sisaUangMakan || 0} type={"Makan"} 
             editInPlace={editInPlace}
-            submitEdit={(nilaiBaru) => submitDataDana("makan",nilaiBaru.dana)}
+            submitEdit={(nilaiBaru) => submitDataDana("makan",parseDana(nilaiBaru.dana))}
             />
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity style={styles.btnAI} onPress={() => navigation.navigate("AiScreen")}>
+          <Text style={styles.btnAIText}>🤖</Text>
+        </TouchableOpacity>
 
         {/* Form Input Cepat */}
         <FormInput />
@@ -154,4 +148,17 @@ const styles = StyleSheet.create({
   btnTabungan: { backgroundColor: "#34A853" },
   btnMakan: { backgroundColor: "#FBBC05" },
   btnText: { color: "#FFF", fontWeight: "bold" },
+  btnAI: {
+  backgroundColor: '#34A853',
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  alignSelf: 'center',
+  marginBottom: 15,
+},
+btnAIText: {
+  color: '#FFF',
+  fontWeight: 'bold',
+  fontSize: 16,
+},
 });
