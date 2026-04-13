@@ -1,14 +1,19 @@
 import { createContext, use, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 export const TabunganContext = createContext();
 
 export default function TabunganProvider({ children }) {
   // Form input
+  const [show, setShow] = useState(false)
+  const [showTime, setShowTime] = useState(false)
   const [formInput, setFormInput] = useState({
     nominal: "",
     deskripsi: "",
     type: "",
+    tanggal: new Date(),
+    jam: new Date()
   });
   const [inputDana, setInputDana] = useState({
     dana: 0,
@@ -30,10 +35,23 @@ export default function TabunganProvider({ children }) {
   return Number(bersih);
 }
 
-
   function formatRibuan(text){
     const cleanNumber = text.replace(/\D/g, '')
     return cleanNumber.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  }
+
+  function handleDateAndTimeChange(event, selectedDate){
+    setShow(Platform.OS === "ios")
+    if(selectedDate){
+      setFormInput({...formInput, tanggal: selectedDate})
+    }
+  }
+
+  function handleTimeChange(event, selectedTime){
+    setShowTime(Platform.OS === "ios")
+    if(selectedTime){
+      setFormInput({...formInput, jam: selectedTime})
+    }
   }
 
   const submitPengeluaran = async (type) => {
@@ -43,26 +61,19 @@ export default function TabunganProvider({ children }) {
         console.log("Harap isi semua field")
         return
       }
-      // Fitur jam dan tanggal otomatis
-      const now = new Date();
-      const tanggal =
-        String(now.getDate()).padStart(2, "0") +
-        "/" +
-        String(now.getMonth() + 1).padStart(2, "0") +
-        "/" +
-        now.getFullYear();
-      const jam =
-        String(now.getHours()).padStart(2, "0") +
-        ":" +
-        String(now.getMinutes()).padStart(2, "0") +
-        ":" +
-        String(now.getHours()).padStart(2, "0");
+      
+      const date = formInput.tanggal
+      const Inputjam = formInput.jam
+
+      const tanggalStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+      const jamStr = `${String(Inputjam.getHours()).padStart(2, "0")}:${String(Inputjam.getMinutes()).padStart(2, "0")}:${String(Inputjam.getSeconds()).padStart(2, "0")}`
+
       const transaksi = {
         nominal: parseDana(formInput.nominal),
         deskripsi: formInput.deskripsi,
         type: type,
-        tanggal: tanggal,
-        jam: jam,
+        tanggal: tanggalStr,
+        jam: jamStr,
       };
 
       // Get current dataUang for balance check
@@ -101,6 +112,8 @@ export default function TabunganProvider({ children }) {
       setFormInput({
         nominal: "",
         deskripsi: "",
+        tanggal: new Date(),
+        jam: new Date()
       });
       setRefresh(true);
       console.log("Berhasil simpan data", currentData);
@@ -238,7 +251,11 @@ export default function TabunganProvider({ children }) {
     sisaUangMakan,
     sisaTabungan,
     parseDana,
-    formatRibuan
+    formatRibuan,
+    handleDateAndTimeChange,
+    setShow,
+    show,
+    handleTimeChange
   };
   return (
     <>
