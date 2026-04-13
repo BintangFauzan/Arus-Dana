@@ -63,9 +63,15 @@ export default function App({navigation}) {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.btnAI} onPress={() => navigation.navigate("AiScreen")}>
+       <View style={styles.btnAI}>
+         <TouchableOpacity onPress={() => navigation.navigate("AiScreen")}>
           <Text style={styles.btnAIText}>🤖</Text>
         </TouchableOpacity>
+         <TouchableOpacity onPress={() => navigation.navigate("gado-gado")}>
+          <Text style={styles.btnAIText}>Gado-gado</Text>
+        </TouchableOpacity>
+       </View>
+        
 
         {/* Form Input Cepat */}
         <FormInput />
@@ -149,7 +155,10 @@ const styles = StyleSheet.create({
   btnMakan: { backgroundColor: "#FBBC05" },
   btnText: { color: "#FFF", fontWeight: "bold" },
   btnAI: {
-  backgroundColor: '#34A853',
+  // backgroundColor: '#34A853',
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  padding: 15,
   paddingVertical: 10,
   paddingHorizontal: 20,
   borderRadius: 8,
@@ -157,8 +166,9 @@ const styles = StyleSheet.create({
   marginBottom: 15,
 },
 btnAIText: {
-  color: '#FFF',
+  color: 'black',
   fontWeight: 'bold',
   fontSize: 16,
+  marginRight:30
 },
 });

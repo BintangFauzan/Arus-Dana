@@ -22,11 +22,25 @@ export default function AiScreen({}) {
   function buildContext() {
     const tabungan = dataUang?.tabungan?.dana ?? 0;
     const makan = dataUang?.makan?.dana ?? 0;
-    const totalPengeluaran = dataPengeluaran.reduce(
-      (sum, item) => sum + (item.nominal || 0),
-      0,
-    );
-    return `Saldo Tabungan : Rp ${tabungan.toLocaleString("id-ID")}, Sisa Tabungan: Rp ${(sisaTabungan || 0).toLocaleString("id-ID")}, Saldo Makan: Rp ${makan.toLocaleString("id-ID")}, Sisa Makan: Rp ${(sisaUangMakan || 0).toLocaleString("id-ID")}, Total Pengeluaran Rp ${totalPengeluaran.toLocaleString("id-ID")}`;
+    
+    // Ambil 20 transaksi terakhir untuk analisis tren
+    const recentTransactions = dataPengeluaran
+      .slice(-20)
+      .map(t => `${t.tanggal} ${t.jam.substring(0,5)}: ${t.deskripsi} (Rp ${t.nominal.toLocaleString("id-ID")}) [${t.type}]`)
+      .join("\n");
+
+    return `
+Saldo Awal:
+- Tabungan: Rp ${tabungan.toLocaleString("id-ID")}
+- Makan: Rp ${makan.toLocaleString("id-ID")}
+
+Sisa Saat Ini:
+- Sisa Tabungan: Rp ${(sisaTabungan || 0).toLocaleString("id-ID")}
+- Sisa Makan: Rp ${(sisaUangMakan || 0).toLocaleString("id-ID")}
+
+Riwayat Transaksi Terakhir:
+${recentTransactions || "Belum ada transaksi."}
+    `.trim();
   }
 
   async function sendMessage() {
