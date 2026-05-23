@@ -6,14 +6,14 @@ export const TabunganContext = createContext();
 
 export default function TabunganProvider({ children }) {
   // Form input
-  const [show, setShow] = useState(false)
-  const [showTime, setShowTime] = useState(false)
+  const [show, setShow] = useState(false);
+  const [showTime, setShowTime] = useState(false);
   const [formInput, setFormInput] = useState({
     nominal: "",
     deskripsi: "",
     type: "",
     tanggal: new Date(),
-    jam: new Date()
+    jam: new Date(),
   });
   const [inputDana, setInputDana] = useState({
     dana: 0,
@@ -28,80 +28,67 @@ export default function TabunganProvider({ children }) {
   // Trigger
   const [editInPlace, setEditInPlace] = useState(null);
 
- function parseDana(text) {
-  if (!text) return 0;
-  let str = String(text);
-  let bersih = str.replace(/\./g, "");
-  return Number(bersih);
-}
-
-  function formatRibuan(text){
-    const cleanNumber = text.replace(/\D/g, '')
-    return cleanNumber.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  function parseDana(text) {
+    if (!text) return 0;
+    let str = String(text);
+    let bersih = str.replace(/\./g, "");
+    return Number(bersih);
   }
 
-  function handleDateAndTimeChange(event, selectedDate){
-    setShow(Platform.OS === "ios")
-    if(selectedDate){
-      setFormInput({...formInput, tanggal: selectedDate})
+  function formatRibuan(text) {
+    const cleanNumber = text.replace(/\D/g, "");
+    return cleanNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  function handleDateAndTimeChange(event, selectedDate) {
+    setShow(Platform.OS === "ios");
+    if (selectedDate) {
+      setFormInput({ ...formInput, tanggal: selectedDate });
     }
   }
 
-  function handleTimeChange(event, selectedTime){
-    setShowTime(Platform.OS === "ios")
-    if(selectedTime){
-      setFormInput({...formInput, jam: selectedTime})
+  function handleTimeChange(event, selectedTime) {
+    setShowTime(Platform.OS === "ios");
+    if (selectedTime) {
+      setFormInput({ ...formInput, jam: selectedTime });
     }
   }
 
-  const submitPengeluaran = async (type) => {
+  const submitPengeluaran = async (type, aiData) => {
     const storage_key = "@pengeluaran";
     try {
-      if(parseDana(formInput.nominal) === 0 || formInput.deskripsi === ""){
-        console.log("Harap isi semua field")
-        return
-      }
-      
-      const date = formInput.tanggal
-      const Inputjam = formInput.jam
+      let transaksi;
 
-      const tanggalStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
-      const jamStr = `${String(Inputjam.getHours()).padStart(2, "0")}:${String(Inputjam.getMinutes()).padStart(2, "0")}:${String(Inputjam.getSeconds()).padStart(2, "0")}`
+      if (aiData) {
+        const combinedDate = new Date(`${aiData.tanggal}T${aiData.jam}`);
+        transaksi = {
+          nominal: parseDana(aiData.nominal),
+          deskripsi: aiData.deskripsi,
+          type: aiData.type,
+          tanggal: `${combinedDate.getFullYear()}-${String(combinedDate.getMonth() + 1).padStart(2, "0")}-${String(combinedDate.getDate()).padStart(2, "0")}`,
+          jam: `${String(combinedDate.getHours()).padStart(2, "0")}:${String(combinedDate.getMinutes()).padStart(2, "0")}:00`,
+        };
+      } else {
+        const date = formInput.tanggal;
+        const Inputjam = formInput.jam;
 
-      const transaksi = {
-        nominal: parseDana(formInput.nominal),
-        deskripsi: formInput.deskripsi,
-        type: type,
-        tanggal: tanggalStr,
-        jam: jamStr,
-      };
+        const tanggalStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        const jamStr = `${String(Inputjam.getHours()).padStart(2, "0")}:${String(Inputjam.getMinutes()).padStart(2, "0")}:${String(Inputjam.getSeconds()).padStart(2, "0")}`;
 
-      // Get current dataUang for balance check
-      const jsonValueUang = await AsyncStorage.getItem("@uang");
-      const currentDataUang =
-        jsonValueUang != null ? JSON.parse(jsonValueUang) : {};
-
-      // Get current dataPengeluaran for balance check
-      const jsonValuePengeluaran = await AsyncStorage.getItem(storage_key);
-      const currentDataPengeluaran =
-        jsonValuePengeluaran != null ? JSON.parse(jsonValuePengeluaran) : [];
-
-      if (type === "tabungan" && parseDana(formInput.nominal) > sisaTabungan) {
-        console.log("uang tidak mencukupi untuk tabungan");
-        setFormInput({
-          nominal: "",
-          deskripsi: "",
-        });
-        return; // Stop the function execution
+        transaksi = {
+          nominal: parseDana(formInput.nominal),
+          deskripsi: formInput.deskripsi,
+          type: type,
+          tanggal: tanggalStr,
+          jam: jamStr,
+        };
       }
 
-      if (type === "makan" && parseDana(formInput.nominal) > sisaUangMakan) {
-        console.log("uang tidak mencukupi untuk makan");
-        setFormInput({
-          nominal: "",
-          deskripsi: "",
-        });
-        return; // Stop the function execution
+      const currentSisa =
+        transaksi.type === "makan" ? sisaUangMakan : sisaTabungan;
+      if (transaksi.nominal > currentSisa) {
+        console.log(`Uang ${transaksi.type} tidak mencukupi`);
+        return;
       }
 
       const jsonValue = await AsyncStorage.getItem(storage_key);
@@ -113,7 +100,7 @@ export default function TabunganProvider({ children }) {
         nominal: "",
         deskripsi: "",
         tanggal: new Date(),
-        jam: new Date()
+        jam: new Date(),
       });
       setRefresh(true);
       console.log("Berhasil simpan data", currentData);
@@ -255,7 +242,7 @@ export default function TabunganProvider({ children }) {
     handleDateAndTimeChange,
     setShow,
     show,
-    handleTimeChange
+    handleTimeChange,
   };
   return (
     <>

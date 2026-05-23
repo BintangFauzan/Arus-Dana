@@ -4,15 +4,22 @@ export default function History({ judul, biaya, type, onPressDeleteTransaction, 
   const dynamicStyleCard =
     type === "makan" ? styles.historyAmountMakan : styles.historyAmountTabungan;
   const historiBiaya = Intl.NumberFormat("id-ID", {maximumSignificantDigits: 3}).format(biaya);
-  const formatDate = tanggal
-  const formatObj = new Date(formatDate)
-  const formatJam = jam
-  const formatObjJam = new Date(formatJam)
+
+  let tanggalNormal
+  if(tanggal.includes("/")){
+    const words = tanggal.split("/")
+    tanggalNormal = words.reverse().join("-")
+  }else{
+    tanggalNormal = tanggal
+  }
+  
+  const dateTimeString =  tanggalNormal+"T"+jam
+  const finalDateObj = new Date(dateTimeString)
   return (
     <View style={styles.historyItem}>
       <View style={styles.historyLeft}>
         <Text style={styles.historyDesc}>{judul}</Text>
-        <Text style={styles.historyDateTime}>{formatObj.toLocaleDateString('id-ID') } • {formatObjJam.toLocaleTimeString('id-ID')}</Text>
+        <Text style={styles.historyDateTime}>{finalDateObj.toLocaleDateString('id-ID') } • {finalDateObj.toLocaleTimeString('id-ID')}</Text>
       </View>
       <Text style={dynamicStyleCard}>-Rp {historiBiaya}</Text>
       <TouchableOpacity onPress={onPressDeleteTransaction} style={styles.deleteBtn}>
