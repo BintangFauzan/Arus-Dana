@@ -52,6 +52,16 @@ export default function App({navigation}) {
               editInPlace={editInPlace}
               submitEdit={(nilaiBaru) => submitDataDana("tabungan", parseDana(nilaiBaru.dana))}
             />
+            {editInPlace === "Tabungan" && (
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={[styles.btnAction, {backgroundColor: '#34A853'}]} onPress={() => submitDataDana("tabungan", dataUang.tabungan?.dana || 0)}>
+                  <Text style={styles.btnActionText}>OK</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.btnAction, {backgroundColor: '#E53935'}]} onPress={() => setEditInPlace(null)}>
+                  <Text style={styles.btnActionText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </TouchableOpacity>
 
           {/* Kolom Makan */}
@@ -60,6 +70,16 @@ export default function App({navigation}) {
             editInPlace={editInPlace}
             submitEdit={(nilaiBaru) => submitDataDana("makan",parseDana(nilaiBaru.dana))}
             />
+            {editInPlace === "Makan" && (
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={[styles.btnAction, {backgroundColor: '#FBBC05'}]} onPress={() => submitDataDana("makan", dataUang.makan?.dana || 0)}>
+                  <Text style={styles.btnActionText}>OK</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.btnAction, {backgroundColor: '#E53935'}]} onPress={() => setEditInPlace(null)}>
+                  <Text style={styles.btnActionText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -170,5 +190,19 @@ btnAIText: {
   fontWeight: 'bold',
   fontSize: 16,
   marginRight:30
+},
+actionRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  marginTop: 10,
+},
+btnAction: {
+  paddingVertical: 8,
+  paddingHorizontal: 20,
+  borderRadius: 5,
+},
+btnActionText: {
+  color: 'white',
+  fontWeight: 'bold',
 },
 });

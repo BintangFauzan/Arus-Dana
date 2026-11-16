@@ -1,4 +1,5 @@
 import { useContext, useState, useRef, useEffect } from "react";
+import * as ImagePicker from "expo-image-picker";
 import {
   View,
   StyleSheet,
@@ -39,6 +40,43 @@ export default function AiScreen({}) {
     }
   }, [message]);
 
+  const handleCamera = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+      base64: true,
+    });
+    if (!result.canceled) {
+      setLoading(true);
+      setMessage((prevState) => [
+        ...prevState,
+        { from: "user", text: "[Foto Struk]" },
+      ]);
+      try {
+        console.log("Starting askAI with image...");
+        const answer = await askAI("Analisis struk belanja ini dan ekstrak datanya", buildContext(), result.assets[0].base64);
+        console.log("AI returned response");
+        const regex = /(?:###DATA_START###|```json\s*)([\s\S]*?)(?:###DATA_END###|```)/;
+        const match = answer.match(regex);
+        if (match) {
+          console.log("Match found, setting pending data...");
+          const extractedData = JSON.parse(match[1]);
+          setPendingData(extractedData);
+          const cleanMsg = answer.replace(regex, "").trim();
+          setMessage((prevState) => [...prevState, { from: "ai", text: cleanMsg }]);
+          setIsModalVisible(true);
+        } else {
+          console.log("No match found in response:", answer);
+          setMessage((prevState) => [...prevState, { from: "ai", text: answer }]);
+        }
+      } catch (e) {
+        console.error("Error in handleCamera:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
   function buildContext() {
     const tabungan = dataUang?.tabungan?.dana ?? 0;
     const makan = dataUang?.makan?.dana ?? 0;
@@ -198,6 +236,9 @@ export default function AiScreen({}) {
 
           {/* input pesan */}
           <View style={styles.inputRow}>
+            <TouchableOpacity style={{marginRight: 10}} onPress={handleCamera}>
+                <Text style={{fontSize: 24}}>📷</Text>
+            </TouchableOpacity>
             <TextInput
               multiline={true}
               style={styles.input}

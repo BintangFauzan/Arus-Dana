@@ -75,10 +75,11 @@ export default function TabunganProvider({ children }) {
         const tanggalStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
         const jamStr = `${String(Inputjam.getHours()).padStart(2, "0")}:${String(Inputjam.getMinutes()).padStart(2, "0")}:${String(Inputjam.getSeconds()).padStart(2, "0")}`;
 
+        const typeCheck = type ? type.toLowerCase() : "tabungan"
         transaksi = {
           nominal: parseDana(formInput.nominal),
           deskripsi: formInput.deskripsi,
-          type: type,
+          type: typeCheck,
           tanggal: tanggalStr,
           jam: jamStr,
         };
