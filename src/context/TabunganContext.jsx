@@ -119,15 +119,13 @@ export default function TabunganProvider({ children }) {
     }
 
     try {
-      const dana = {
-        dana: parseDana(nilaiBaru || 0), // Gunakan nominal dari inputDana jika ada, atau pastikan itu angka
-        type: type,
-      };
-
-      // Jika inputDana.dana yang digunakan (seperti di CardTabungan)
-      if (nilaiBaru.dana !== undefined) {
-        dana.dana = parseDana(nilaiBaru);
+      let parsed;
+      if (nilaiBaru && typeof nilaiBaru === "object" && "dana" in nilaiBaru) {
+        parsed = parseDana(nilaiBaru.dana);
+      } else {
+        parsed = parseDana(nilaiBaru || 0);
       }
+      const dana = { dana: parsed, type };
 
       const jsonValue = await AsyncStorage.getItem("@uang");
       let currentData = jsonValue != null ? JSON.parse(jsonValue) : {};

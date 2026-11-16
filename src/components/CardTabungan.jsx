@@ -15,9 +15,9 @@ export default function CardTabungan({
   editInPlace,
   submitEdit,
   touchAble,
+  onDanaChange,
 }) {
-  const { formatRibuan } =
-    useContext(TabunganContext);
+  const { formatRibuan, parseDana } = useContext(TabunganContext);
   const [localState, setLocalState] = useState({
     dana: "",
     type: "",
@@ -34,6 +34,7 @@ export default function CardTabungan({
   function handleChangeText(text){
     const formatted = formatRibuan(text)
     setLocalState({...localState, dana: formatted})
+    if (onDanaChange) onDanaChange(parseDana(formatted))
   }
   return (
     <>
