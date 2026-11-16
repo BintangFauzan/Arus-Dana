@@ -14,24 +14,28 @@ import FormInput from "../components/FormInput";
 import History from "../components/History";
 import { TabunganContext } from "../context/TabunganContext";
 
-export default function App() {
+export default function App({navigation}) {
   const {
     dataPengeluaran,
     submitDataDana,
-    inputDana,
+    // inputDana,
     dataUang,
     editTrigger,
     editInPlace,
-    editTriggerMakan
+    setEditInPlace,
+    parseDana,
+    editTriggerMakan,
+    deleteLastTransaction,
+    hapusData,
+    sisaTabungan,
+    sisaUangMakan
   } = useContext(TabunganContext);
-  console.log("input dana", inputDana);
+  // console.log("input dana", inputDana);
   console.log("data uang", dataUang);
+  console.log("Data pengeluaran", dataPengeluaran)
 
   console.log("edit in place", editInPlace);
 
-  function closeEdit() {
-    setEditInPlace(false);
-  }
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -40,33 +44,54 @@ export default function App() {
 
         {/* Dashboard 2 Kolom */}
         <View style={styles.cardContainer}>
-          {/* Kolom Tabungan */}
           <TouchableOpacity onPress={editTrigger}>
             <CardTabungan
               judul={"TABUNGAN"}
-              saldo={dataUang.tabungan?.dana}
-              type={"tabungan"}
-              editInPlace={editInPlace.type}
-              onSubmitEditing={() => submitDataDana("tabungan")}
-              // touchAble={
-              //   <TouchableOpacity
-              //     style={[styles.btn, styles.btnTabungan]}
-              //     onPress={() => submitDataDana("tabungan")}
-              //   >
-              //     <Text style={styles.btnText}>- Tabungan</Text>
-              //   </TouchableOpacity>
-              // }
+              saldo={sisaTabungan || 0}
+              type={"Tabungan"}
+              editInPlace={editInPlace}
+              submitEdit={(nilaiBaru) => submitDataDana("tabungan", parseDana(nilaiBaru.dana))}
             />
+            {editInPlace === "Tabungan" && (
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={[styles.btnAction, {backgroundColor: '#34A853'}]} onPress={() => submitDataDana("tabungan", dataUang.tabungan?.dana || 0)}>
+                  <Text style={styles.btnActionText}>OK</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.btnAction, {backgroundColor: '#E53935'}]} onPress={() => setEditInPlace(null)}>
+                  <Text style={styles.btnActionText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </TouchableOpacity>
 
           {/* Kolom Makan */}
           <TouchableOpacity style={styles.cardWrapper} onPress={editTriggerMakan}>
-            <CardTabungan judul={"MAKAN"} saldo={dataUang.makan?.dana || 0} type={"makan"} 
-            editInPlace={editInPlace.type}
-            onSubmitEditing={() => submitDataDana("makan")}
+            <CardTabungan judul={"MAKAN"} saldo={sisaUangMakan || 0} type={"Makan"} 
+            editInPlace={editInPlace}
+            submitEdit={(nilaiBaru) => submitDataDana("makan",parseDana(nilaiBaru.dana))}
             />
+            {editInPlace === "Makan" && (
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={[styles.btnAction, {backgroundColor: '#FBBC05'}]} onPress={() => submitDataDana("makan", dataUang.makan?.dana || 0)}>
+                  <Text style={styles.btnActionText}>OK</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.btnAction, {backgroundColor: '#E53935'}]} onPress={() => setEditInPlace(null)}>
+                  <Text style={styles.btnActionText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
+
+       <View style={styles.btnAI}>
+         <TouchableOpacity onPress={() => navigation.navigate("AiScreen")}>
+          <Text style={styles.btnAIText}>🤖</Text>
+        </TouchableOpacity>
+         <TouchableOpacity onPress={() => navigation.navigate("gado-gado")}>
+          <Text style={styles.btnAIText}>Gado-gado</Text>
+        </TouchableOpacity>
+       </View>
+        
 
         {/* Form Input Cepat */}
         <FormInput />
@@ -74,14 +99,19 @@ export default function App() {
         {/* Riwayat Transaksi */}
         <View style={styles.historySection}>
           <Text style={styles.sectionTitle}>Transaksi Terakhir</Text>
-          {dataPengeluaran?.map((item, index) => (
+         <ScrollView style={styles.historyScroll} nestedScrollEnabled={true} showsVerticalScrollIndicator={true}>
+           {dataPengeluaran?.map((item, index) => (
             <History
               judul={item.deskripsi}
               biaya={item.nominal}
               type={item.type}
               key={index}
+              onPressDeleteTransaction={() => deleteLastTransaction(index)}
+              tanggal={item.tanggal}
+              jam={item.jam}
             />
           ))}
+         </ScrollView>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -130,6 +160,7 @@ const styles = StyleSheet.create({
   historyDesc: { fontSize: 14, color: "#444" },
   historyAmountMakan: { color: "#E53935", fontWeight: "bold" },
   historyAmountTabungan: { color: "#34A853", fontWeight: "bold" },
+  historyScroll:{ maxHeight: 300},
   btn: {
     flex: 0.48,
     padding: 12,
@@ -143,4 +174,35 @@ const styles = StyleSheet.create({
   btnTabungan: { backgroundColor: "#34A853" },
   btnMakan: { backgroundColor: "#FBBC05" },
   btnText: { color: "#FFF", fontWeight: "bold" },
+  btnAI: {
+  // backgroundColor: '#34A853',
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  padding: 15,
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  alignSelf: 'center',
+  marginBottom: 15,
+},
+btnAIText: {
+  color: 'black',
+  fontWeight: 'bold',
+  fontSize: 16,
+  marginRight:30
+},
+actionRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  marginTop: 10,
+},
+btnAction: {
+  paddingVertical: 8,
+  paddingHorizontal: 20,
+  borderRadius: 5,
+},
+btnActionText: {
+  color: 'white',
+  fontWeight: 'bold',
+},
 });
